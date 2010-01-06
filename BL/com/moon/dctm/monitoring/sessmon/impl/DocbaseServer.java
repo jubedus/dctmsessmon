@@ -281,7 +281,7 @@ public class DocbaseServer implements IServer {
 
 	public void startMonitoring(int interval) {
 		//Start a monitoring thread
-		Inspector currInspector = new Inspector(this);
+		Inspector currInspector = new Inspector(this, interval);
 		new Thread(currInspector).start();		
 	}
 

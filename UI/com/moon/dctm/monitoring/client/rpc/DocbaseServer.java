@@ -14,9 +14,22 @@ public class DocbaseServer   implements IsSerializable{
 	int currSessCount;
 	int prevSessCount;
 	Date lastUpdate;
-	
-	  public DocbaseServer() {
+	ServiceException lastException;
+
+
+	public DocbaseServer() {
 	  }
+	  
+	  public DocbaseServer(String docbaseName,String name,String host ) {
+		  	this.docbaseName=docbaseName;
+		    this.name=name;
+		    this.host=host;
+		    this.maxSessCount = 0;
+		    this.currSessCount=0;
+		    this.prevSessCount=0;
+		    this.lastUpdate=null;
+		    
+		  }
 	  
 	  public DocbaseServer(String name,String host, int sessionsMax,int sessionsCurrent, int sessionsPrev, Date refreshDate) {
 	    this.name=name;
@@ -119,5 +132,55 @@ public class DocbaseServer   implements IsSerializable{
 	public int getPercentUsed() {
 		float percentUsed = this.currSessCount*100.0f/this.maxSessCount;
 		return Math.round(percentUsed);
+	}
+	
+	/**
+	 * Returns the last encountered exception.
+	 * @return Last exception or null if no exception was encountered.
+	 */
+	
+	  public ServiceException getLastException() {
+		return lastException;
+	}
+
+	  /**
+	   * Sets the last encountered exception.
+	   * @param lastException exception to set.
+	   */
+	public void setLastException(ServiceException lastException) {
+		this.lastException = lastException;
+	}
+
+	/**
+	 * Sets the maximum session count supported
+	 * by the server.
+	 * @param maxSessCount Maximum session count
+	 */
+	public void setMaxSessCount(int maxSessCount) {
+		this.maxSessCount = maxSessCount;
+	}
+	
+	/**
+	 * Sets the current session count.
+	 * @param currSessCount current session count.
+	 */
+	public void setCurrSessCount(int currSessCount) {
+		this.currSessCount = currSessCount;
+	}
+	
+	/**
+	 * Sets the previous session count.
+	 * @param prevSessCount previous session count.
+	 */
+	public void setPrevSessCount(int prevSessCount) {
+		this.prevSessCount = prevSessCount;
+	}
+	
+	/**
+	 * Set the date of last update.
+	 * @param lastUpdate last update date.
+	 */
+	public void setLastUpdate(Date lastUpdate) {
+		this.lastUpdate = lastUpdate;
 	}
 }

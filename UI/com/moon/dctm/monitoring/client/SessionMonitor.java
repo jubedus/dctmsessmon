@@ -10,10 +10,15 @@ import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.ClickListener;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.MouseListener;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.HTMLTable.CellFormatter;
 import com.google.gwt.user.client.ui.HTMLTable.RowFormatter;
 import com.moon.dctm.monitoring.client.constants.UIStrings;
@@ -164,6 +169,10 @@ public class SessionMonitor implements EntryPoint {
 	 */
 	private void updateServers(DocbaseServer[] servers) {
 		if (servers != null) {
+			
+			//Clear the error message
+			errorMsg.setText("");
+			
 			for (int i = 0; i < servers.length; i++) {
 				DocbaseServer server = servers[i];
 				String serverID = server.getID();
@@ -202,7 +211,8 @@ public class SessionMonitor implements EntryPoint {
 				serversTable.setText(row, 5, Integer.toString(server.getPercentUsed())+"%");
 				Label changeTextlabel = new Label(changeText);
 				serversTable.setWidget(row, 6, changeTextlabel);
-				serversTable.setText(row, 7, updateTime);
+				Label timestamplabel = new Label(updateTime);
+				serversTable.setWidget(row, 7, timestamplabel);
 
 				// stocksFlexTable.getRowFormatter().addStyleName(row,
 				// "watchListHeader");
@@ -238,13 +248,23 @@ public class SessionMonitor implements EntryPoint {
 					formatRow.removeStyleName(row, "usageLimitHigh");	
 					formatRow.removeStyleName(row, "usageLimitLow");
 				}
-			}
+				
+				//List errors
+				if(server.getLastException() !=null){
+					//Construct error messages
+					StringBuffer errMsg = new StringBuffer();
+					//Start with existing error message
+					errMsg.append(errorMsg.getText());
+					errMsg.append(server.getLastException().getMessage());
+					errMsg.append("\n");
+					
+					//Print to the error label
+					errorMsg.setText(errMsg.toString());
+				}
+ 			}
 
 			// Update the page refresh timestamp
 			updatePageRefresh();
-			
-			//Clear the error message
-			errorMsg.setText("");
 		}
 	}
 

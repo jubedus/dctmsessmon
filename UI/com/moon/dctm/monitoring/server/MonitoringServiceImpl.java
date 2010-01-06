@@ -2,7 +2,9 @@ package com.moon.dctm.monitoring.server;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.documentum.com.DfClientX;
 import com.documentum.com.IDfClientX;
@@ -53,6 +55,8 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 	 * of multiple exceptions. It works only if the main test switch
 	 * is set to TRUE.*/
 	private static final Boolean EMULATOR_MULTI_EXCEPTION = false;
+	
+	private Map<String,DocbaseServer> serversUI = null;
 	
 	/**
 	 * Entry point to the server implementation.
@@ -120,9 +124,8 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 			String userDomain = this.getServletContext().getInitParameter(PARAM_DOMAIN);
 			
 			//create Client objects
-			IDfClientX clientx = new DfClientX();
-			IDfClient client = clientx.getLocalClient();
-			
+//			IDfClientX clientx = new DfClientX();
+//			IDfClient client = clientx.getLocalClient();			
 //			client.initCrypto("C:\\Documentum\\config\\secure\\aek.key");
 			
 			//Initiate monitoring
@@ -140,26 +143,41 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 			for(int j=0;j<servers.size();j++){
 				IServer currServer = servers.get(j);
 //				DocbaseServer docbaseServer = new DocbaseServer(currServer);
-				
 				//Instantiate an RPC replica of the docbase server
 			    String name=currServer.getName();
 			    String host=currServer.getHost();
+				//Update the UI server
+				DocbaseServer docbaseUIServer = serversUI.get(name+host);			    
 			    int maxSessCount = currServer.getMaxSessionCount();
-			    ActiveSessionCounter activeSession = (ActiveSessionCounter)currServer.getFilter("ActiveSessionCounter");
-			    int currSessCount=activeSession.getActiveSessionCount();
-			    int prevSessCount=activeSession.getPreviousSessionCount();
-			    Date lastUpdate=activeSession.getInspectTime();
 			    
-			    DocbaseServer docbaseServer = new DocbaseServer(currDocbaseName, name,host,maxSessCount,currSessCount,prevSessCount,lastUpdate);
-				docbaseServers.add(docbaseServer);
+			    
+			    ActiveSessionCounter activeSession = (ActiveSessionCounter)currServer.getFilter("ActiveSessionCounter");
+			    		    
+			    if(activeSession!=null){
+			    	
+				    if(DfLogger.isInfoEnabled(this)){
+				    	DfLogger.info(this, activeSession.toString(), null, null);
+				    }
+				    
+				    int currSessCount=activeSession.getActiveSessionCount();
+				    int prevSessCount=activeSession.getPreviousSessionCount();
+				    Date lastUpdate=activeSession.getInspectTime();
+				    
+				    docbaseUIServer.setMaxSessCount(maxSessCount);
+				    docbaseUIServer.setCurrSessCount(currSessCount);
+				    docbaseUIServer.setPrevSessCount(prevSessCount);
+				    docbaseUIServer.setLastUpdate(lastUpdate);
+				    docbaseUIServer.setLastException(null);
+			    }
 			}
 		}
 		
-		DocbaseServer[] ret = new DocbaseServer[docbaseServers.size()];
-		for(int i=0;i<docbaseServers.size();i++){
-			ret[i]=docbaseServers.get(i);
-		}
+//		DocbaseServer[] ret = new DocbaseServer[serversUI.size()];
+//		for(int i=0;i<serversUI.size();i++){
+//			ret[i]=serversUI.values().get(i);
+//		}
 //		DocbaseServer[] ret =(DocbaseServer[]) docbaseServers. toArray(); 
+		DocbaseServer[] ret =serversUI.values().toArray(new DocbaseServer[0]);		
 		return ret;
 	}
 	
@@ -187,7 +205,10 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 		//Get a docbroker instance
 		broker = Starter.getLocalDocbroker();
 		//Declare multi exception
-		MultiServiceException excMulti = null;
+//		MultiServiceException excMulti = null;
+		
+		//Initialize the list of UI servers
+		serversUI = new LinkedHashMap<String, DocbaseServer>();
 		
 		//Iterate thru servers of all docbases
 		List<IDocbase> docbases = broker.getDobases();
@@ -196,26 +217,36 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 			List<IServer> servers = currDocbase.getServers();
 			for(int j=0;j<servers.size();j++){
 				IServer currServer=null;;
+				DocbaseServer currUIserver = null;
 				try {
-					//Initialize the server
+					//Get the server instance
 					currServer = servers.get(j);
+					//Initialize the UI docbase server
+					currUIserver = new DocbaseServer(currDocbase.getName(), currServer.getName(),currServer.getHost());
+					//Add to the list of US
+					serversUI.put(currUIserver.getID(), currUIserver);
+					//Initialize the server
 					currServer.init(userName,userPassword,userDomain);
+					//Set the max session count
+					currUIserver.setMaxSessCount(currServer.getMaxSessionCount());
 					//Instantiate filter
 					IFilter filterSessCount = new ActiveSessionCounter();
 					//Add filter to the server
 					currServer.addFilter("ActiveSessionCounter",filterSessCount);
 					//Start monitoring
-					currServer.startMonitoring();
+					currServer.startMonitoring(30000);
+					//currUIserver
 				} catch (DfException e) {
 					//Failed to initialize monitoring for
 					//a particular server instance
-					if(excMulti==null){
-						excMulti  =  new MultiServiceException();
-					}
+//					if(excMulti==null){
+//						excMulti  =  new MultiServiceException();
+//					}
 					//Create a service exception and
 					//add it to the list of accumulated exceptions
 					ServiceException excService = new ServiceException(e);
-					excMulti.addException(excService);
+//					excMulti.addException(excService);
+					currUIserver.setLastException(excService);
 					
 					String serverName = (currServer!=null)?currServer.toString():"";
 					String docbaseName = currDocbase.getName();
@@ -230,9 +261,9 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 		
 
 		//Throw the exception if there were problems
-		if(excMulti!=null){
-			throw excMulti;
-		}
+//		if(excMulti!=null){
+//			throw excMulti;
+//		}
 	}
 	
 	/**

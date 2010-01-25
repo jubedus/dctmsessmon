@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="DCTMconfig"/>
+	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SessionMonitorBL"/>
+	<classpathentry kind="lib" path="C:/Program Files/Apache Software Foundation/apache-tomcat-6.0.18/webapps/TaxDMSws/WEB-INF/lib/dfc.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/log4j.jar"/>
+	<classpathentry kind="output" path="war/WEB-INF/classes"/>
+</classpath>

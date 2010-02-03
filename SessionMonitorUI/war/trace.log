@@ -1,0 +1,3 @@
+29953 [btpool0-1] DEBUG tracing.com.moon.dctm.monitoring.server.MonitoringServiceImpl  - Method getServers()
+29953 [btpool0-1] DEBUG tracing.com.moon.dctm.monitoring.server.MonitoringServiceImpl  - Method getDocbaseServers()
+29953 [btpool0-1] DEBUG tracing.com.moon.dctm.monitoring.server.MonitoringServiceImpl  - Method launch()

@@ -1,6 +1,0 @@
-# Refer dfcfull.properties for details
-
-dfc.data.dir=C\:/Documentum
-dfc.search.ecis.enable=false
-dfc.search.ecis.host=
-dfc.search.ecis.port=

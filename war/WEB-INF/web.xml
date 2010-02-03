@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+  
+  <!-- Servlets -->
+  <servlet>
+    <servlet-name>greetServlet</servlet-name>
+    <servlet-class>com.moon.dctm.monitoring.server.GreetingServiceImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>greetServlet</servlet-name>
+    <url-pattern>/sessionmonitorui/greet</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>monitorServler</servlet-name>
+    <servlet-class>com.moon.dctm.monitoring.server.MonitoringServiceImpl</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>monitorServler</servlet-name>
+    <url-pattern>/sessionmonitorui/monitor</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Default page to serve -->
+  <welcome-file-list>
+    <welcome-file>SessionMonitorUI.html</welcome-file>
+  </welcome-file-list>
+
+  <context-param>
+    <param-name>sess_mon_user</param-name>
+    <param-value>sessmon</param-value>
+  </context-param>
+  <context-param>
+    <param-name>sess_mon_password</param-name>
+    <param-value>sessmon</param-value>
+  </context-param>
+  
+  <!-- Monitoring interval -->
+  <context-param>
+    <param-name>monitoring_interval</param-name>
+    <param-value>60</param-value>
+  </context-param>
+  
+    <!-- Emulation mode -->
+  <context-param>
+    <param-name>emulator_mode</param-name>
+    <param-value>false</param-value>
+  </context-param>
+  
+</web-app>

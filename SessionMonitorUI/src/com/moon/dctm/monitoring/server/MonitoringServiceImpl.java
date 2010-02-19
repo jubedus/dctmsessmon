@@ -204,8 +204,10 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 					currUIserver.setMaxSessCount(currServer.getMaxSessionCount());
 					//Instantiate filter
 					IFilter filterSessCount = new ActiveSessionCounter();
+					//Construct filter name
+					String filterName = ActiveSessionCounter.class.getName();
 					//Add filter to the server
-					currServer.addFilter("ActiveSessionCounter",filterSessCount);
+					currServer.addFilter(filterName,filterSessCount);
 					//Start monitoring
 					currServer.startMonitoring(getMonitoringInterval());
 					//currUIserver
@@ -216,10 +218,12 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 					ServiceException excService = new ServiceException(e);
 					currUIserver.setLastException(excService);
 					
+					//Log the error
 					String serverName = (currServer!=null)?currServer.toString():"";
 					String docbaseName = currDocbase.getName();
-					String[] errArgs = {serverName,docbaseName};
-					logger.error("Failed to initialize monitoring for server {0} of docbase {1}");
+					
+					String errorMsg = String.format("Failed to initialize monitoring for server [%s] of docbase %s", serverName, docbaseName);
+					logger.error(errorMsg);
 				}
 			}
 		}
@@ -255,15 +259,17 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 				DocbaseServer docbaseUIServer = serversUI.get(name+host);			    
 			    int maxSessCount = currServer.getMaxSessionCount();
 			    
-			    
-			    ActiveSessionCounter activeSession = (ActiveSessionCounter)currServer.getFilter("ActiveSessionCounter");
-			    		    
+				//Construct filter name
+				String filterName = ActiveSessionCounter.class.getName();
+			    ActiveSessionCounter activeSession = (ActiveSessionCounter)currServer.getFilter(filterName);
+
+			    //Retrieve monitoring details
 			    if(activeSession!=null){
 			    	
 				    if(logger.isInfoEnabled()){
 				    	logger.info(activeSession.toString());
 				    }
-				    
+				    //Update the UI server instance
 				    int currSessCount=activeSession.getActiveSessionCount();
 				    int prevSessCount=activeSession.getPreviousSessionCount();
 				    Date lastUpdate=activeSession.getInspectTime();

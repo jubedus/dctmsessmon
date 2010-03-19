@@ -13,7 +13,6 @@
   <!-- Other module inherits                                      -->
 
   <!-- Specify the app entry point class.                         -->
-  <!-- <entry-point class='com.moon.dctm.monitoring.client.SessionMonitorUI'/> -->
   <entry-point class='com.moon.dctm.monitoring.client.SessionMonitor'/>
 
   <!-- Specify the paths for translatable code                    -->

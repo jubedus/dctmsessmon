@@ -7,16 +7,6 @@
   
   <!-- Servlets -->
   <servlet>
-    <servlet-name>greetServlet</servlet-name>
-    <servlet-class>com.moon.dctm.monitoring.server.GreetingServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>greetServlet</servlet-name>
-    <url-pattern>/sessionmonitorui/greet</url-pattern>
-  </servlet-mapping>
-  
-    <servlet>
     <servlet-name>monitorServler</servlet-name>
     <servlet-class>com.moon.dctm.monitoring.server.MonitoringServiceImpl</servlet-class>
   </servlet>

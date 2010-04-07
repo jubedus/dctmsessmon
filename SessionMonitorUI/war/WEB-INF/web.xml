@@ -27,7 +27,7 @@
   </context-param>
   <context-param>
     <param-name>sess_mon_password</param-name>
-    <param-value>sessmon</param-value>
+    <param-value>lZPU3AHbAl8=</param-value>
   </context-param>
   
   <!-- Monitoring interval -->
@@ -39,7 +39,7 @@
     <!-- Emulation mode -->
   <context-param>
     <param-name>emulator_mode</param-name>
-    <param-value>false</param-value>
+    <param-value>true</param-value>
   </context-param>
   
 </web-app>

@@ -8,6 +8,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.documentum.fc.common.DfException;
+import com.documentum.fc.impl.util.RegistryPasswordUtils;
+import com.documentum.operations.common.DfBase64FormatException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.moon.dctm.monitoring.client.MonitoringService;
 import com.moon.dctm.monitoring.sessmon.IDocbase;
@@ -144,7 +147,7 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 			logger.trace("Launching session monitoring.");
 			//Retrieve user credentials
 			String userName = this.getServletContext().getInitParameter(PARAM_USER_NAME);
-			String userPassword = this.getServletContext().getInitParameter(PARAM_PASSWORD);
+			String userPassword = getPassword();
 			String userDomain = this.getServletContext().getInitParameter(PARAM_DOMAIN);
 			
 			//Initiate monitoring
@@ -371,4 +374,36 @@ public class MonitoringServiceImpl extends RemoteServiceServlet implements
 		logger.info("Returned monitroing interval is set to "+monitorInterval);
 		return monitorInterval;
 	}
+	
+	/**
+	* Returns password for the session monitoring.
+	* 
+	* @return password
+	 * @throws DfException in case there is a problem decrypting the password
+	*/
+	private String getPassword() throws DfException
+	{
+		logger.trace("Method getPassword()");
+		
+		String actualPassword = "";
+		
+		//Retrieve the password from configuration
+		String configPassword = this.getServletContext().getInitParameter(PARAM_PASSWORD);
+		
+		//Decrypt the password if it's encrypted
+		try {
+			actualPassword = RegistryPasswordUtils.decrypt(configPassword);
+		} catch (DfException e) {
+			//Check if formatting exception was caught
+			if(e.getCause() instanceof DfBase64FormatException)
+			{
+				//Assume that the password is not encrypted.
+				actualPassword = configPassword;
+			}else{
+				throw e;
+			}
+		}
+	
+		return actualPassword;
+	} 
 }

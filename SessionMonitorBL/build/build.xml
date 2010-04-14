@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="build" default="BL_build" basedir=".">
+
+	<!-- Configure path -->
+  <property name="project.BL.folder" value=".."/>
+  <property name="build.BL.filename" value="SessMonBL"/>
+  <property name="version.num" value="1.0"/>
+  <property name="build.BL.folder" value="${project.BL.folder}/build/out"/>
+	
+
+  	<target name="BL_clean" description="Cleans Business Layer project">
+	  	<delete dir="${project.BL.folder}/bin" failonerror="false" />
+		<delete dir="${build.BL.folder}" failonerror="false" />
+	</target>
+	
+	<target name="BL_compile" depends="BL_clean" description="Compile Business Layer classes">
+		  
+		  <path id="BL.class.path">
+		  	 <fileset dir="${project.BL.folder}/lib" includes="**/*.jar"/>
+		  </path>
+		
+		<mkdir dir="${project.BL.folder}/bin"/>
+		
+		<javac srcdir="${project.BL.folder}/src" includes="**" encoding="utf-8"
+	        destdir="${project.BL.folder}/bin"
+	        source="1.5" target="1.5" nowarn="true"
+	        debug="true" debuglevel="lines,vars,source">
+	      <classpath refid="BL.class.path"/>
+	    </javac>
+	</target>
+
+	<target name="BL_build" depends="BL_compile">				
+		<mkdir dir="${build.BL.folder}"/>
+		
+		<delete file="${build.BL.folder}/MANIFEST.MF"/>
+		
+	    <property name="version.num" value="${project.version}"/>
+	    <buildnumber file="build.num"/>
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+
+		
+	     <manifest file="${build.BL.folder}/MANIFEST.MF">
+	        <attribute name="Implementation-Version" 
+	                     value="${version.num}-${build.number}"/>
+			<attribute name="Built-Date" value="${TODAY}"/>
+	    </manifest>
+
+		<property name="build.BL.filename.full" value="${build.BL.folder}/${build.BL.filename}-${version.num}.jar"/>
+		
+	    <jar destfile="${build.BL.filename.full}"
+	         basedir="${project.BL.folder}/bin"
+	         includes="**/*.class"
+	    	 manifest="${build.BL.folder}/MANIFEST.MF"
+	    	/>
+	</target>
+
+</project>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="SessionMonitorBuild" default="UI_package" basedir=".">
+
+	<!-- Configure path to GWT SDK -->
+  <property file="build.properties"/>
+  <property name="gwt.sdk" location="${gwt.sdk.folder}" />
+	
+  <path id="project.class.path">
+    <pathelement location="${project.UI.folder}/war/WEB-INF/classes"/>
+    <pathelement location="${gwt.sdk}/gwt-user.jar"/>
+    <fileset dir="${gwt.sdk}" includes="gwt-dev*.jar"/>
+    <!-- Add any additional non-server libs (such as JUnit) -->
+    <fileset dir="${project.UI.folder}/war/WEB-INF/lib" includes="**/*.jar"/>
+  </path>
+
+	<target name="UI_clean" description="Clean UI project">
+	  	<delete dir="${project.BD.folder}" failonerror="false" />
+		<delete dir="${project.output.folder}" failonerror="false" />		
+	</target>
+	  	
+  <target name="UI_libs" description="Copy libs to WEB-INF/lib">
+  	<property name="build.folder" value="${project.BD.folder}/WEB-INF/lib"/>
+  	
+    <mkdir dir="${build.folder}" />
+  	
+    <copy todir="${build.folder}" file="${gwt.sdk}/gwt-servlet.jar" />
+    <!-- Add any additional server libs that need to be copied -->
+  	<copy todir="${build.folder}">
+        <fileset dir="${project.BL.folder}/build/out" includes="**/*.jar"/>	
+      </copy>
+  	<copy todir="${build.folder}" file="${project.UI.folder}/war/WEB-INF/lib/aspectjrt.jar"/>
+  	<copy todir="${build.folder}" file="${project.UI.folder}/war/WEB-INF/lib/log4j.jar"/>  	
+  </target>
+
+	<target name="UI_resources" description="Copy UI resources">
+	  	<property name="config.folder" value="${project.UI.folder}/config"/>
+		<property name="http.folder" value="${project.UI.folder}/war"/>
+		<property name="webxml.folder" value="${project.UI.folder}/war/WEB-INF"/>
+	  	
+	  	<property name="config.folder.build" value="${project.BD.folder}/WEB-INF/classes"/>
+		<property name="http.folder.build" value="${project.BD.folder}"/>
+		<property name="webxml.folder.build" value="${project.BD.folder}/WEB-INF"/>
+		
+	    <!-- Add any additional server libs that need to be copied -->
+	  	<copy todir="${config.folder.build}">
+	        <fileset dir="${config.folder}" includes="*.properties"/>	
+	    </copy>
+		<copy todir="${http.folder.build}">
+		     <fileset dir="${http.folder}" includes="*.*"/>	
+		</copy>
+		
+		<copy todir="${webxml.folder.build}">
+		     <fileset dir="${webxml.folder}" includes="*.xml"/>	
+		</copy>
+		  	
+	  </target>
+	
+  <target name="UI_compile" depends="UI_clean, UI_libs, UI_resources" description="Compile java source">
+    <path id="UI_compile.class.path">
+    	<fileset dir="${project.BD.folder}/WEB-INF/lib" includes="**/*.jar"/>
+    </path>
+  	
+  	<property name="class.folder" value="${project.BD.folder}/WEB-INF/classes"/>
+  	<property name="source.folder" value="${project.UI.folder}/src"/>
+  	
+    <mkdir dir="${class.folder}"/>
+  	
+    <javac srcdir="${source.folder}" includes="**" encoding="utf-8"
+        destdir="${class.folder}"
+        source="1.5" target="1.5" nowarn="true"
+        debug="true" debuglevel="lines,vars,source">
+      <classpath refid="project.class.path"/>
+      <classpath refid="UI_compile.class.path"/>
+    </javac>
+    <copy todir="${class.folder}">
+      <fileset dir="${source.folder}" excludes="**/*.java"/>
+    </copy>
+  </target>
+
+  <target name="UI_gwt_compile" depends="UI_compile" description="GWT compile to JavaScript">
+  	<property name="source.folder" value="${project.UI.folder}/src"/>
+  	
+    <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+      <classpath>
+        <pathelement location="${source.folder}"/>
+        <path refid="project.class.path"/>
+      </classpath>
+      <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+      <jvmarg value="-Xmx512m"/>
+      <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+      <arg value="com.moon.dctm.monitoring.SessionMonitorUI"/>
+    </java>
+  </target>
+
+
+	  <target name="UI_build" depends="UI_gwt_compile" description="Build this project" />
+
+	  <target name="UI_package" depends="UI_build" description="Create a war file">
+		<delete file="${project.BD.folder}/MANIFEST.MF"/>
+		
+	    <property name="version.num" value="${project.version}"/>
+	    <buildnumber file="build.num"/>
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+
+		
+	     <manifest file="${project.BD.folder}/MANIFEST.MF">
+	        <attribute name="Implementation-Version" 
+	                     value="${version.num}-${build.number}"/>
+			<attribute name="Built-Date" value="${TODAY}"/>
+	    </manifest>
+
+	  	<mkdir dir="${project.output.folder}"/>
+	     	
+		<property name="build.UI.filename.full" value="${project.output.folder}/${build.UI.filename}-${version.num}.${build.number}.war"/>
+	    	
+	    <zip destfile="${build.UI.filename.full}" basedir="war"/>
+	  </target>
+
+
+	
+  <target name="devmode" depends="UI_compile" description="Run development mode">
+    <java failonerror="true" fork="true" classname="com.google.gwt.dev.DevMode">
+      <classpath>
+        <pathelement location="src"/>
+        <path refid="project.class.path"/>
+      </classpath>
+      <jvmarg value="-Xmx256M"/>
+      <arg value="-startupUrl"/>
+      <arg value="Hello.html"/>
+      <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+      <arg value="com.google.gwt.sample.hello.Hello"/>
+    </java>
+  </target>
+
+  <target name="eclipse.generate" depends="UI_libs" description="Generate eclipse project">
+    <java failonerror="true" fork="true" classname="com.google.gwt.user.tools.WebAppCreator">
+      <classpath>
+        <path refid="project.class.path"/>
+      </classpath>
+      <arg value="-XonlyEclipse"/>
+      <arg value="-ignore"/>
+      <arg value="com.google.gwt.sample.hello.Hello"/>
+    </java>
+  </target>
+
+<!--
+Test targets suppressed because -junit argument was not specified when running webAppCreator.
+
+  <target name="javac.tests" depends="javac" description="Compiles test code">
+    <javac srcdir="test" includes="**" encoding="utf-8"
+      source="1.5" target="1.5" nowarn="true"
+      debug="true" debuglevel="lines,vars,source">
+      <classpath location="path_to_the_junit_jar"/>
+      <classpath refid="project.class.path"/>
+    </javac>
+  </target>
+  
+  <target name="test.dev" depends="javac.tests" description="Run development mode tests">
+    <mkdir dir="reports/htmlunit.dev" />
+    <junit fork="yes" printsummary="yes" haltonfailure="yes">
+      <jvmarg line="-Xmx256m" />
+      <sysproperty key="gwt.args" value="-logLevel WARN" />
+      <sysproperty key="java.awt.headless" value="true" />
+      <classpath>
+        <pathelement location="src" />
+        <pathelement location="test" />
+        <path refid="project.class.path" />
+        <pathelement location="path_to_the_junit_jar" />
+      </classpath>
+      <batchtest todir="reports/htmlunit.dev" >
+        <fileset dir="test" >
+          <include name="**/*Test.java" />
+        </fileset>
+      </batchtest>
+      <formatter type="plain" />
+      <formatter type="xml" />
+    </junit>
+  </target>
+
+  <target name="test.prod" depends="javac.tests" description="Run production mode tests">
+    <mkdir dir="reports/htmlunit.prod" />
+    <junit fork="yes" printsummary="yes" haltonfailure="yes">
+      <jvmarg line="-Xmx256m" />
+      <sysproperty key="gwt.args" value="-prod -logLevel WARN -out www-test" />
+      <sysproperty key="java.awt.headless" value="true" />
+      <classpath>
+        <pathelement location="src" />
+        <pathelement location="test" />
+        <path refid="project.class.path" />
+        <pathelement location="path_to_the_junit_jar" />
+      </classpath>
+      <batchtest todir="reports/htmlunit.prod" >
+        <fileset dir="test" >
+          <include name="**/*Test.java" />
+        </fileset>
+      </batchtest>
+      <formatter type="plain" />
+      <formatter type="xml" />
+    </junit>
+  </target>
+
+  <target name="test" description="Run development and production mode tests">
+    <antcall target="test.dev" />
+    <antcall target="test.prod" />
+  </target>
+-->
+
+  <target name="hosted" depends="devmode" description="Run development mode (NOTE: the 'hosted' target is deprecated)" />
+
+
+</project>

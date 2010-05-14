@@ -20,6 +20,8 @@ import com.documentum.fc.client.IDfTypedObject;
 import com.documentum.fc.common.DfException;
 import com.documentum.fc.common.DfLogger;
 import com.documentum.fc.common.IDfLoginInfo;
+import com.documentum.fc.impl.util.RegistryPasswordUtils;
+import com.documentum.operations.common.DfBase64FormatException;
 import com.moon.dctm.monitoring.sessmon.IFilter;
 import com.moon.dctm.monitoring.sessmon.IServer;
 
@@ -116,7 +118,9 @@ public class DocbaseServer implements IServer {
 		//create an IDfLoginInfo object named loginInfoObj
 		IDfLoginInfo loginInfoObj = clientx.getLoginInfo();
 		loginInfoObj.setUser(userName);
-		loginInfoObj.setPassword(userPassword);
+		//Decrypt the password
+		String pwdDecrypted = getPassword(userPassword);
+		loginInfoObj.setPassword(pwdDecrypted);
 		loginInfoObj.setDomain(userDomain);
 			
 		//bind the Session Manager to the login info
@@ -304,4 +308,32 @@ public class DocbaseServer implements IServer {
 		
 		return stringObject.toString();
 	}
+	
+	/**
+	* Decrypts the password.
+	* Decrypts the passed-in password using DFC facilities.
+	* Returns password "as is" if it's not encrypted. 
+	* @return password to decrypt.
+	 * @throws DfException in case there is a problem decrypting the password
+	*/
+	private String getPassword(String passwordToDecrypt) throws DfException
+	{	
+		String actualPassword = "";
+		
+		//Decrypt the password if it's encrypted
+		try {
+			actualPassword = RegistryPasswordUtils.decrypt(passwordToDecrypt);
+		} catch (DfException e) {
+			//Check if formatting exception was caught
+			if(e.getCause() instanceof DfBase64FormatException)
+			{
+				//Assume that the password is not encrypted.
+				actualPassword = passwordToDecrypt;
+			}else{
+				throw e;
+			}
+		}
+	
+		return actualPassword;
+	} 
 }
